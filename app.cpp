@@ -68,6 +68,9 @@ void Application::print_help() const {
         "\tpush\n"
         "\texport\n"
         "\timport\n"
+        "\n\nFlags:\n"
+        "\t--dry-run\n"
+        "\t-v[v[v]]\n"
         "\n";
     printf(msg, confs.program_name.c_str());
 }
