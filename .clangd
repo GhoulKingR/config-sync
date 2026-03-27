@@ -1,0 +1,4 @@
+CompileFlags:
+  Add:
+    - -DDEBUG
+    - -std=c++20
