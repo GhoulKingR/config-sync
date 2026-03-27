@@ -1,11 +1,15 @@
 #include "defines.hpp"
+#include <optional>
 #include <stdexcept>
 
 Configs::Configs(int argc, const char **argv) :
-    logger("CONFIGS"),
     dry_run(false),
     level(0),
-    home_dir(std::getenv("HOME"))
+    home_dir(std::getenv("HOME")),
+    url(std::nullopt),
+    file(std::nullopt),
+    program_name("config-sync"),
+    local_dir(fs::path(home_dir) / ("." + program_name))
 {
     if (argc < 2) command = NONE;
     else {
@@ -31,13 +35,16 @@ Configs::Configs(int argc, const char **argv) :
             level = 2;
         } else if (arg == "-vvv") {
             level = 3;
+        } else if (arg.substr(0, 4) == "http" || arg.substr(0, 4) == "ssh:") {
+            url = arg;
+        } else if (arg.substr(0, 7) == "--file=") {
+            file = arg.substr(7);
+        } else if (arg == "-f") {
+            file = argv[i + 1];
+            i++;
         } else {
             throw std::runtime_error("Invalid argument" + arg);
         }
     }
-
-    logger.setLevel(level);
-    this->program_name = PROGRAM_NAME;
-    local_dir = fs::path(home_dir) / ("." + program_name);
 }
 

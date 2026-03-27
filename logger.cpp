@@ -6,6 +6,7 @@
 #include <string>
 
 Logger::Logger(const char *module_name) : level(0), module_name(module_name) {}
+Logger::Logger(const char *module_name, uint8_t level) : level(level), module_name(module_name) {}
 
 void Logger::setLevel(uint8_t level) {
     this->level = level;
@@ -42,6 +43,5 @@ void Logger::info(const std::string &text, bool dryrun) const {
 }
 
 void Logger::error(const std::string &text) const {
-    if (level < 1) return;
     log_message("ERROR", text);
 }

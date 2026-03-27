@@ -3,10 +3,9 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 namespace fs = std::filesystem;
-
-#define PROGRAM_NAME "config-sync"
 
 enum Command {
     INIT_LOCAL,
@@ -27,6 +26,7 @@ class Logger {
 
 public:
     Logger(const char *module_name);
+    Logger(const char *module_name, uint8_t log_level);
     void setLevel(uint8_t level);
     void info(const std::string &) const;
     void info(const std::string &, bool) const;
@@ -38,16 +38,15 @@ public:
 struct Configs {
     Command command;
     bool dry_run;
-    std::string program_name;
-    fs::path home_dir;
-    fs::path local_dir;
     uint8_t level;
+    std::optional<std::string> url;
+    std::optional<std::string> file;
 
-    static Configs *init(int argc, const char **argv);
+    const std::string program_name;
+    const fs::path home_dir;
+    const fs::path local_dir;
+
     Configs(int argc, const char **argv);
-
-private:
-    Logger logger;
 };
 
 /// app.cpp
@@ -55,12 +54,14 @@ class Application {
     const Configs &confs;
     const Logger logger;
 
-    void run_command(const std::string &command);
+    void run_command(const std::string &command) const;
 
 public:
     Application(const Configs &confs);
-    void init_local();
+    void init_local() const;
+    void init_remote() const;
     void print_help() const;
+    void export_zip() const;
 };
 
 void print_help(const std::string &program_name);

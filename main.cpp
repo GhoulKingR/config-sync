@@ -5,8 +5,8 @@
 #include "defines.hpp"
 
 int main(int argc, const char **argv) {
-    Logger logger("MAIN");
     Configs opts(argc, argv);
+    Logger logger("MAIN", opts.level);
     Application app(opts);
 
     try {
@@ -14,7 +14,12 @@ int main(int argc, const char **argv) {
             case INIT_LOCAL:
                 app.init_local();
                 break;
-
+            case INIT_REMOTE:
+                app.init_remote();
+                break;
+            case EXPORT_ZIP:
+                app.export_zip();
+                break;
             default:
                 app.print_help();
                 break;
