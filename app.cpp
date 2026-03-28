@@ -1,4 +1,5 @@
 #include "defines.hpp"
+#include <cstdio>
 #include <filesystem>
 #include <format>
 #include <chrono>
@@ -105,6 +106,65 @@ void Application::init_local() const {
     }
 
     logger.info("Done copying neovim configs");
+}
+
+void Application::import_zip() const {
+    if (!confs.file.has_value()) {
+        throw std::runtime_error("import command requires a file");
+    }
+
+    const fs::path file = confs.file.value();
+    if (!fs::exists(file)) {
+        throw std::runtime_error(std::format("File '{}' not found", file.c_str()));
+    }
+
+    printf("This action deletes your existing configurations. Do you want to continue? (yN) ");
+    if (confs.dry_run) {
+        printf("y\n");
+    } else {
+        char c = std::getchar();
+        if (c != 'y' && c != 'Y') {
+            return;
+        }
+    }
+    
+    // clear local_dir
+    if (fs::is_directory(confs.local_dir)) {
+        run_command(std::format("rm -rf \"{}\"", confs.local_dir.c_str()));
+        run_command(std::format("mkdir \"{}\"", confs.local_dir.c_str()));
+    }
+
+    // load extracted data into it
+    run_command(std::format(
+        "cp \"{}\" \"{}\"",
+        file.c_str(),
+        confs.local_dir.c_str()
+    ));
+
+    run_command(std::format(
+        "cd \"{}\"; unzip -q \"{}\"; rm \"{}\"",
+        confs.local_dir.c_str(),
+        file.filename().c_str(),
+        file.filename().c_str()
+    ));
+
+    // copy nvim to config location
+    const fs::path nvim_config = confs.home_dir / ".config/nvim";
+    run_command(std::format(
+        "rm -rf {}; cp -r \"{}\" \"{}\"",
+        nvim_config.c_str(),
+        (confs.local_dir / "nvim" / "nvim").c_str(),
+        nvim_config.c_str()
+    ));
+
+    // copy tmux config to location
+    const fs::path tmux_config = confs.home_dir / ".tmux.conf";
+    run_command(std::format(
+        "rm -rf {}; cp \"{}\" \"{}\"",
+        tmux_config.c_str(),
+        (confs.local_dir / "tmux/.tmux.conf").c_str(),
+        tmux_config.c_str()
+    ));
 }
 
 void Application::print_help() const {

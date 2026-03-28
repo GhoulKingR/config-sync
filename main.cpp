@@ -20,6 +20,9 @@ int main(int argc, const char **argv) {
             case EXPORT_ZIP:
                 app.export_zip();
                 break;
+            case IMPORT_ZIP:
+                app.import_zip();
+                break;
             default:
                 app.print_help();
                 break;

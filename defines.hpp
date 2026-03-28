@@ -62,6 +62,7 @@ public:
     void init_remote() const;
     void print_help() const;
     void export_zip() const;
+    void import_zip() const;
 };
 
 void print_help(const std::string &program_name);
