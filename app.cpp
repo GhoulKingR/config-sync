@@ -7,7 +7,7 @@
 #include <string_view>
 
 Application::Application(Configs &confs, const Shell &shell)
-: confs(confs), logger("APPLICATION", confs.level), shell(shell) {}
+: confs(confs), shell(shell), logger("APPLICATION", confs.level) {}
 
 void Application::init_remote() const {
     if (!confs.url.has_value()) {
