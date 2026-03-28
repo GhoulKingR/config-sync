@@ -119,6 +119,9 @@ void Application::pull_remote() const {
     shell.set_cwd(confs.local_dir);
     shell.git_pull();
     shell.set_cwd(former);
+
+    confs.load_config_file();
+    load_dir(confs.local_dir);
 }
 
 void Application::import_zip() {
@@ -152,7 +155,6 @@ void Application::import_zip() {
 
     shell.set_cwd(former);
     confs.load_config_file();
-
     load_dir(confs.local_dir);
 }
 
