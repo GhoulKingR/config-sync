@@ -12,10 +12,10 @@
 Configs::Configs(int argc, const char **argv, const Shell &shell) :
     dry_run(false),
     level(0),
-    home_dir(std::getenv("HOME")),
     url(std::nullopt),
     file(std::nullopt),
     program_name("config-sync"),
+    home_dir(std::getenv("HOME")),
     local_dir(fs::path(home_dir) / ("." + program_name)),
     shell(shell)
 {
@@ -75,5 +75,5 @@ void Configs::load_config_file() {
         outfile.close();
     }
 
-    targets = std::move(toml::parse_file(config_path.string()));
+    targets = toml::parse_file(config_path.string());
 }
