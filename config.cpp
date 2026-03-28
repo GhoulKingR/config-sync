@@ -1,9 +1,11 @@
 #include "defines.hpp"
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <toml++/toml.hpp>
 #include <utility>
 
@@ -32,7 +34,7 @@ Configs::Configs(int argc, const char **argv, const Shell &shell) :
     }
 
     for (int i = 2; i < argc; i++) {
-        const std::string arg = argv[i];
+        const std::string_view arg = argv[i];
 
         if (arg == "--dry-run") {
             dry_run = true;
@@ -42,15 +44,18 @@ Configs::Configs(int argc, const char **argv, const Shell &shell) :
             level = 2;
         } else if (arg == "-vvv") {
             level = 3;
-        } else if (arg.substr(0, 4) == "http" || arg.substr(0, 4) == "ssh:") {
-            url = arg;
+        } else if (arg.substr(0, 6) == "--url=") {
+            url = arg.substr(6);
+        } else if (arg == "-u") {
+            url = argv[i + 1];
+            i++;
         } else if (arg.substr(0, 7) == "--file=") {
             file = arg.substr(7);
         } else if (arg == "-f") {
             file = argv[i + 1];
             i++;
         } else {
-            throw std::runtime_error("Invalid argument" + arg);
+            throw std::runtime_error(std::format("Invalid argument: {}", arg));
         }
     }
 }
