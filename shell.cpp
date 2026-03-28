@@ -95,9 +95,16 @@ void Shell::git_add_remote(std::string_view url) const {
     );
 }
 
-void Shell::git_set_upstream() const {
+void Shell::git_push() const {
     run_command(
-        "git branch -M main",
-        "Setting upstream to remote URL"
+        "git push origin main",
+        "Pushing updates to remote repository"
+    );
+}
+
+void Shell::git_pull() const {
+    run_command(
+        "git pull origin main",
+        "Pushing updates to remote repository"
     );
 }

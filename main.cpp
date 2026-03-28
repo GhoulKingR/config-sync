@@ -24,6 +24,12 @@ int main(int argc, const char **argv) {
             case INIT_REMOTE:
                 app.init_remote();
                 break;
+            case PUSH_REMOTE:
+                app.push_remote();
+                break;
+            case PULL_REMOTE:
+                app.pull_remote();
+                break;
             case EXPORT_ZIP:
                 app.export_zip();
                 break;

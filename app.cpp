@@ -29,7 +29,6 @@ void Application::init_remote() const {
     shell.git_add();
     shell.git_commit();
     shell.git_add_remote(*confs.url);
-    shell.git_set_upstream();
     shell.set_cwd(former);
     logger.info("Done initializing local directory for git remote");
 }
@@ -105,6 +104,23 @@ void Application::init_local() const {
     update_dir(confs.local_dir);
 }
 
+void Application::pull_remote() const {
+    // check if local dir exists
+    if (!fs::is_directory(confs.local_dir)) {
+        throw std::runtime_error("Config directory missing");
+    }
+    
+    // check if it's a git repository
+    if (!fs::is_directory(confs.local_dir / ".git")) {
+        throw std::runtime_error("Config directory hasn't been initialized yet");
+    }
+
+    const fs::path former = shell.get_cwd();
+    shell.set_cwd(confs.local_dir);
+    shell.git_pull();
+    shell.set_cwd(former);
+}
+
 void Application::import_zip() {
     if (!confs.file.has_value()) {
         throw std::runtime_error("import command requires a file");
@@ -138,6 +154,23 @@ void Application::import_zip() {
     confs.load_config_file();
 
     load_dir(confs.local_dir);
+}
+
+void Application::push_remote() const {
+    // check if local dir exists
+    if (!fs::is_directory(confs.local_dir)) {
+        throw std::runtime_error("Config directory missing");
+    }
+    
+    // check if it's a git repository
+    if (!fs::is_directory(confs.local_dir / ".git")) {
+        throw std::runtime_error("Config directory hasn't been initialized yet");
+    }
+
+    const fs::path former = shell.get_cwd();
+    shell.set_cwd(confs.local_dir);
+    shell.git_push();
+    shell.set_cwd(former);
 }
 
 void Application::print_help() const {
