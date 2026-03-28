@@ -217,6 +217,7 @@ void Application::print_help() const {
         "\t--dry-run\n"
         "\t-v[v[v]]\n"
         "\t-f FILE, --file=FILE\n"
+        "\t-u URL, --url=URL\n"
         "\n";
     printf(msg, confs.program_name.c_str());
 }
