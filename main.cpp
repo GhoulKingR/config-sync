@@ -14,7 +14,7 @@ int main(int argc, const char **argv) {
     opts.load_config_file();
     
     const Logger logger("MAIN", opts.level);
-    Application app(opts, shell);
+    const Application app(opts, shell);
 
     try {
         switch (opts.command) {
@@ -35,6 +35,9 @@ int main(int argc, const char **argv) {
                 break;
             case IMPORT_ZIP:
                 app.import_zip();
+                break;
+            case CLONE_REMOTE:
+                app.clone_remote();
                 break;
             case HELP:
             default:

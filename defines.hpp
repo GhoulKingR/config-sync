@@ -64,6 +64,7 @@ public:
     void git_add() const;
     void git_commit() const;
     void git_add_remote(std::string_view) const;
+    void git_clone(std::string_view, std::string_view) const;
     void git_push() const;
     void git_pull() const;
 };
@@ -100,9 +101,10 @@ public:
     void init_remote() const;
     void push_remote() const;
     void pull_remote() const;
+    void clone_remote() const;
     void print_help() const;
     void export_zip() const;
-    void import_zip();
+    void import_zip() const;
 };
 
 #endif

@@ -124,7 +124,7 @@ void Application::pull_remote() const {
     load_dir(confs.local_dir);
 }
 
-void Application::import_zip() {
+void Application::import_zip() const {
     if (!confs.file.has_value()) {
         throw std::runtime_error("import command requires a file");
     }
@@ -134,7 +134,7 @@ void Application::import_zip() {
         throw std::runtime_error(std::format("File '{}' not found", file.c_str()));
     }
 
-    printf("This action deletes your existing configurations. Do you want to continue? (yN) ");
+    printf("This action is destructive and will wipe your existing configurations. Do you want to continue? (yN) ");
     if (confs.dry_run) {
         printf("y\n");
     } else {
@@ -173,6 +173,32 @@ void Application::push_remote() const {
     shell.set_cwd(confs.local_dir);
     shell.git_push();
     shell.set_cwd(former);
+}
+
+void Application::clone_remote() const {
+    if (!confs.url.has_value()) {
+        throw std::runtime_error("You must provide a url");
+    }
+
+    // delete local dir if it exists
+    if (fs::is_directory(confs.local_dir)) {
+        shell.del(confs.local_dir.c_str());
+    }
+
+    printf("This action is destructive and will wipe your existing configurations. Do you want to continue? (yN) ");
+    if (confs.dry_run) {
+        printf("y\n");
+    } else {
+        char c = std::getchar();
+        if (c != 'y' && c != 'Y') {
+            return;
+        }
+    }
+
+    // clone repo to local_dir
+    shell.git_clone(confs.url.value().c_str(), confs.local_dir.c_str());
+    confs.load_config_file();
+    load_dir(confs.local_dir);
 }
 
 void Application::print_help() const {

@@ -108,3 +108,10 @@ void Shell::git_pull() const {
         "Pushing updates to remote repository"
     );
 }
+
+void Shell::git_clone(std::string_view url, std::string_view dest) const {
+    run_command(
+        std::format("git clone {} {}", url, dest),
+        "Cloning remote repository"
+    );
+}
