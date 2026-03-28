@@ -1,6 +1,6 @@
 CC = g++
 FLAGS = -std=c++20 -DDEBUG
-SOURCES = main.cpp app.cpp config.cpp logger.cpp
+SOURCES = main.cpp app.cpp config.cpp logger.cpp shell.cpp
 PROGRAM_NAME = config-sync
 BUILD_DIRECTORY = build
 INCLUDES = -Itomlplusplus/include

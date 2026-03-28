@@ -1,15 +1,21 @@
 #include "defines.hpp"
+#include <filesystem>
+#include <fstream>
 #include <optional>
 #include <stdexcept>
+#include <string>
+#include <toml++/toml.hpp>
+#include <utility>
 
-Configs::Configs(int argc, const char **argv) :
+Configs::Configs(int argc, const char **argv, const Shell &shell) :
     dry_run(false),
     level(0),
     home_dir(std::getenv("HOME")),
     url(std::nullopt),
     file(std::nullopt),
     program_name("config-sync"),
-    local_dir(fs::path(home_dir) / ("." + program_name))
+    local_dir(fs::path(home_dir) / ("." + program_name)),
+    shell(shell)
 {
     if (argc < 2) command = NONE;
     else {
@@ -49,3 +55,21 @@ Configs::Configs(int argc, const char **argv) :
     }
 }
 
+void Configs::load_config_file() {
+    const fs::path config_path = local_dir / "config.toml";
+
+    if (!fs::is_directory(local_dir)) {
+        shell.mkdir(local_dir.string());
+    }
+
+    // write basic toml to files if it doesn't exist
+    if (!fs::exists(config_path)) {
+        std::ofstream outfile(config_path);
+        outfile << "[targets]\n"
+                << "nvim = " << home_dir / ".config/nvim" << "\n"
+                << "tmux = " << home_dir / ".tmux.conf"   << "\n";
+        outfile.close();
+    }
+
+    targets = std::move(toml::parse_file(config_path.string()));
+}

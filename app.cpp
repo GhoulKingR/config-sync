@@ -2,20 +2,12 @@
 #include <cstdio>
 #include <filesystem>
 #include <format>
-#include <chrono>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
-Application::Application(const Configs &confs)
-: confs(confs), logger("APPLICATION", confs.level) {}
-
-void Application::run_command(const std::string &command) const {
-    if (confs.dry_run) {
-        logger.info(command, true);
-    } else {
-        std::system(command.c_str());
-    }
-}
+Application::Application(Configs &confs, const Shell &shell)
+: confs(confs), logger("APPLICATION", confs.level), shell(shell) {}
 
 void Application::init_remote() const {
     if (!confs.url.has_value()) {
@@ -28,87 +20,92 @@ void Application::init_remote() const {
         throw std::runtime_error("No local directory found, make sure you run the `init` command first");
     }
 
-    logger.info("Initializing local directory for git remote");
-    const auto now = std::chrono::system_clock::now();
+    const fs::path former = shell.get_cwd();
+    shell.set_cwd(confs.local_dir);
 
-    run_command(std::format("cd \"{}\"; git init -b main", confs.local_dir.c_str()));
-    run_command(std::format("cd \"{}\"; git add .", confs.local_dir.c_str()));
-    run_command(std::format("cd \"{}\"; git commit -m \"{:%Y-%m-%d %H:%M:%S UTC}\"", confs.local_dir.c_str(), now));
-    run_command(std::format("cd \"{}\"; git remote add origin \"{}\"", confs.local_dir.c_str(), *confs.url));
-    run_command(std::format("cd \"{}\"; git branch -u origin/main", confs.local_dir.c_str()));
+    logger.info("Initializing local directory for git remote");
+
+    shell.git_init();
+    shell.git_add();
+    shell.git_commit();
+    shell.git_add_remote(*confs.url);
+    shell.git_set_upstream();
+    shell.set_cwd(former);
     logger.info("Done initializing local directory for git remote");
 }
 
 void Application::export_zip() const {
     const std::string output_path = confs.file.value_or("export.zip");
-    const char *export_folder = ".config-sync-export";
-    run_command(std::format("mkdir {}", export_folder));
+    const std::string_view export_folder = ".config-sync-export";
+    shell.mkdir(export_folder);
 
-    const std::string tmux_to = std::format("{}/tmux", export_folder);
-    const fs::path tmux_path = confs.home_dir / ".tmux.conf"; 
+    update_dir(confs.local_dir);
+    update_dir(export_folder);
 
-    // check for tmux config file and copy
-    if (fs::exists(tmux_path)) {
-        run_command(std::format("mkdir \"{}\"", tmux_to));
-        run_command(std::format("cp \"{}\" \"{}\"", tmux_path.c_str(), tmux_to));
-    }
+    const fs::path current_path = shell.get_cwd();
+    shell.set_cwd(export_folder);
+    shell.zip("../" + output_path);
+    shell.del(export_folder);
+    shell.set_cwd(current_path);
+    shell.del(export_folder);
+}
 
-    const std::string nvim_to = std::format("{}/nvim", export_folder);
-    const fs::path nvim_path = confs.home_dir / ".config/nvim";
+void Application::update_dir(const fs::path &dest_dir) const {
+    confs.targets["targets"].as_table()->for_each(
+        [this, &dest_dir](const toml::key &key, const toml::node &val) {
+            const std::string_view dest_name = key.str();
+            const std::string &src  = val.as_string()->get();
 
-    // check for neovim config files
-    if (fs::is_directory(nvim_path)) {
-        run_command(std::format("mkdir \"{}\"", nvim_to));
-        run_command(std::format("cp -r \"{}\" \"{}\"", nvim_path.c_str(), nvim_to));
-    }
+            logger.info(std::format("Copying {} configs", dest_name));
+            const fs::path dest = dest_dir / dest_name;
 
-    run_command(std::format("cd {}; zip -q -r ../{} .", export_folder, output_path));
-    run_command(std::format("rm -rf {}", export_folder));
+            // check if file has already been copied and delete
+            if (fs::is_directory(dest)) {
+                shell.del(dest.c_str());
+            }
+
+            // check for tmux config file and copy
+            if (fs::exists(src)) {
+                shell.mkdir(dest.c_str());
+                shell.copy(src, dest.c_str());
+            }
+            logger.info(std::format("Done copying {} configs", dest_name));
+        }
+    );
+}
+
+
+void Application::load_dir(const fs::path &src_dir) const {
+    confs.targets["targets"].as_table()->for_each(
+        [this, &src_dir](const toml::key &key, const toml::node &val) {
+            const std::string_view src_name = key.str();
+            const fs::path &dest  = val.as_string()->get();
+
+            logger.info(std::format("Copying {} configs", src_name));
+            const fs::path src = src_dir / src_name;
+
+            // check if source config folder exists
+            if (!fs::is_directory(src)) {
+                return;
+            }
+
+            shell.del(dest.c_str());
+            shell.copy((src / dest.filename()).c_str(), dest.c_str());
+            logger.info(std::format("Done copying {} configs", src_name));
+        }
+    );
 }
 
 void Application::init_local() const {
     // init local folder
     if (!fs::is_directory(confs.local_dir)) {
-        run_command(std::format("mkdir \"{}\"", confs.local_dir.c_str()));
+        throw std::runtime_error("Config file/directory missing");
     }
 
-    logger.info("Copying tmux configs");
-    const fs::path tmux_to = confs.local_dir / "tmux";
-    const fs::path tmux_path = confs.home_dir / ".tmux.conf"; 
-
-    // check if tmux has already been copied and delete
-    if (fs::is_directory(tmux_to)) {
-        run_command(std::format("rm -rf \"{}\"", tmux_to.c_str()));
-        logger.info("Deleted previous saved tmux config");
-    }
-
-    // check for tmux config file and copy
-    if (fs::exists(tmux_path)) {
-        run_command(std::format("mkdir \"{}\"", tmux_to.c_str()));
-        run_command(std::format("cp \"{}\" \"{}\"/", tmux_path.c_str(), tmux_to.c_str()));
-    }
-    logger.info("Done copying tmux configs");
-
-    logger.info("Copying neovim configs");
-    const fs::path nvim_to = confs.local_dir / "neovim";
-    const fs::path nvim_path = confs.home_dir / ".config/nvim";
-
-    // check if neovim has been copied before and delete
-    if (fs::is_directory(nvim_to)) {
-        run_command(std::format("rm -rf \"{}\"", nvim_to.c_str()));
-        logger.log("Deleted previous saved neovim config");
-    }
-
-    // check for neovim config files
-    if (fs::is_directory(nvim_path)) {
-        run_command(std::format("mkdir \"{}\"", nvim_to.c_str()));
-        run_command(std::format("cp -r \"{}\" \"{}\"/", nvim_path.c_str(), nvim_to.c_str()));
-    }
-
-    logger.info("Done copying neovim configs");
+    update_dir(confs.local_dir);
 }
 
-void Application::import_zip() const {
+void Application::import_zip() {
     if (!confs.file.has_value()) {
         throw std::runtime_error("import command requires a file");
     }
@@ -127,44 +124,20 @@ void Application::import_zip() const {
             return;
         }
     }
-    
-    // clear local_dir
-    if (fs::is_directory(confs.local_dir)) {
-        run_command(std::format("rm -rf \"{}\"", confs.local_dir.c_str()));
-        run_command(std::format("mkdir \"{}\"", confs.local_dir.c_str()));
-    }
 
-    // load extracted data into it
-    run_command(std::format(
-        "cp \"{}\" \"{}\"",
-        file.c_str(),
-        confs.local_dir.c_str()
-    ));
+    shell.del(confs.local_dir.c_str());
+    shell.mkdir(confs.local_dir.c_str());
+    shell.copy(file.c_str(), confs.local_dir.c_str());
 
-    run_command(std::format(
-        "cd \"{}\"; unzip -q \"{}\"; rm \"{}\"",
-        confs.local_dir.c_str(),
-        file.filename().c_str(),
-        file.filename().c_str()
-    ));
+    const fs::path former = shell.get_cwd();
+    shell.set_cwd(confs.local_dir);
+    shell.unzip(file.c_str());
+    shell.del(file.c_str());
 
-    // copy nvim to config location
-    const fs::path nvim_config = confs.home_dir / ".config/nvim";
-    run_command(std::format(
-        "rm -rf {}; cp -r \"{}\" \"{}\"",
-        nvim_config.c_str(),
-        (confs.local_dir / "nvim" / "nvim").c_str(),
-        nvim_config.c_str()
-    ));
+    shell.set_cwd(former);
+    confs.load_config_file();
 
-    // copy tmux config to location
-    const fs::path tmux_config = confs.home_dir / ".tmux.conf";
-    run_command(std::format(
-        "rm -rf {}; cp \"{}\" \"{}\"",
-        tmux_config.c_str(),
-        (confs.local_dir / "tmux/.tmux.conf").c_str(),
-        tmux_config.c_str()
-    ));
+    load_dir(confs.local_dir);
 }
 
 void Application::print_help() const {

@@ -5,9 +5,16 @@
 #include "defines.hpp"
 
 int main(int argc, const char **argv) {
-    Configs opts(argc, argv);
-    Logger logger("MAIN", opts.level);
-    Application app(opts);
+    Shell shell;
+    Configs opts(argc, argv, shell);
+
+    // Load options into shell then load config files
+    // The order matters here
+    shell.load_config(opts);
+    opts.load_config_file();
+    
+    const Logger logger("MAIN", opts.level);
+    Application app(opts, shell);
 
     try {
         switch (opts.command) {

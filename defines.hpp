@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <toml++/toml.hpp>
 namespace fs = std::filesystem;
 
 enum Command {
@@ -35,6 +37,36 @@ public:
     void log(const std::string &) const;
 };
 
+
+/// shell.cpp
+struct Configs;
+class Shell {
+    bool dry_run;
+    Logger logger;
+
+    void run_command(const std::string &, const std::string &) const;
+
+public:
+    Shell();
+    Shell(bool dry_run, uint8_t log_level);
+    void load_config(const Configs &);
+
+    void mkdir(std::string_view) const;
+    void del(std::string_view) const;
+    void copy(std::string_view, std::string_view) const;
+    void zip(std::string_view) const;
+    void unzip(std::string_view) const;
+    void set_cwd(const fs::path &) const;
+    const fs::path get_cwd() const;
+
+    // git commands
+    void git_init() const;
+    void git_add() const;
+    void git_commit() const;
+    void git_add_remote(std::string_view) const;
+    void git_set_upstream() const;
+};
+
 /// config.cpp
 struct Configs {
     Command command;
@@ -42,30 +74,32 @@ struct Configs {
     uint8_t level;
     std::optional<std::string> url;
     std::optional<std::string> file;
+    toml::table targets;
 
     const std::string program_name;
     const fs::path home_dir;
     const fs::path local_dir;
+    const Shell &shell;
 
-    Configs(int argc, const char **argv);
+    Configs(int argc, const char **argv, const Shell &shell);
+    void load_config_file();
 };
 
 /// app.cpp
 class Application {
-    const Configs &confs;
+    Configs &confs;
+    const Shell &shell;
     const Logger logger;
 
-    void run_command(const std::string &command) const;
-
+    void update_dir(const fs::path &) const;
+    void load_dir(const fs::path &) const;
 public:
-    Application(const Configs &confs);
+    Application(Configs &confs, const Shell &shell);
     void init_local() const;
     void init_remote() const;
     void print_help() const;
     void export_zip() const;
-    void import_zip() const;
+    void import_zip();
 };
-
-void print_help(const std::string &program_name);
 
 #endif
