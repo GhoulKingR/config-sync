@@ -39,6 +39,9 @@ int main(int argc, const char **argv) {
             case CLONE_REMOTE:
                 app.clone_remote();
                 break;
+            case STATUS:
+                app.print_status();
+                break;
             case HELP:
             default:
                 app.print_help();

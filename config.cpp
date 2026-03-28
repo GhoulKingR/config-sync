@@ -30,6 +30,7 @@ Configs::Configs(int argc, const char **argv, const Shell &shell) :
         else if (arg == "export") command = EXPORT_ZIP;
         else if (arg == "import") command = IMPORT_ZIP;
         else if (arg == "help") command = HELP;
+        else if (arg == "status") command = STATUS;
         else command = NONE;
     }
 
@@ -67,12 +68,10 @@ void Configs::load_config_file() {
         shell.mkdir(local_dir.string());
     }
 
-    // write basic toml to files if it doesn't exist
+    // write basic toml to config file if it doesn't exist
     if (!fs::exists(config_path)) {
         std::ofstream outfile(config_path);
-        outfile << "[targets]\n"
-                << "nvim = " << home_dir / ".config/nvim" << "\n"
-                << "tmux = " << home_dir / ".tmux.conf"   << "\n";
+        outfile << "[targets]\n";
         outfile.close();
     }
 

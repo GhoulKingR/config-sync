@@ -104,14 +104,30 @@ void Shell::git_push() const {
 
 void Shell::git_pull() const {
     run_command(
-        "git pull origin main",
+        "git pull origin main --rebase",
         "Pushing updates to remote repository"
     );
+    git_add();
+    git_commit();
 }
 
 void Shell::git_clone(std::string_view url, std::string_view dest) const {
     run_command(
         std::format("git clone {} {}", url, dest),
         "Cloning remote repository"
+    );
+}
+
+void Shell::git_status() const {
+    run_command(
+        "git status",
+        "Checking git status"
+    );
+}
+
+void Shell::list_files() const {
+    run_command(
+        "ls -l",
+        "Listing files in current directory"
     );
 }

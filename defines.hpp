@@ -17,6 +17,7 @@ enum Command {
     PUSH_REMOTE,
     EXPORT_ZIP,
     IMPORT_ZIP,
+    STATUS,
     HELP,
     NONE,
 };
@@ -67,6 +68,8 @@ public:
     void git_clone(std::string_view, std::string_view) const;
     void git_push() const;
     void git_pull() const;
+    void git_status() const;
+    void list_files() const;
 };
 
 /// config.cpp
@@ -105,6 +108,7 @@ public:
     void print_help() const;
     void export_zip() const;
     void import_zip() const;
+    void print_status() const;
 };
 
 #endif

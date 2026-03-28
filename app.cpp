@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <format>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -50,8 +51,10 @@ void Application::export_zip() const {
 }
 
 void Application::update_dir(const fs::path &dest_dir) const {
+    // Read [targets] sub-table from toml file
     confs.targets["targets"].as_table()->for_each(
         [this, &dest_dir](const toml::key &key, const toml::node &val) {
+            // get key and value for the current entry
             const std::string_view dest_name = key.str();
             const std::string &src  = val.as_string()->get();
 
@@ -63,7 +66,8 @@ void Application::update_dir(const fs::path &dest_dir) const {
                 shell.del(dest.c_str());
             }
 
-            // check for tmux config file and copy
+            // check if config file/folder already exists and copy to
+            // local_dir
             if (fs::exists(src)) {
                 shell.mkdir(dest.c_str());
                 shell.copy(src, dest.c_str());
@@ -96,7 +100,7 @@ void Application::load_dir(const fs::path &src_dir) const {
 }
 
 void Application::init_local() const {
-    // init local folder
+    // Make sure local_dir exists
     if (!fs::is_directory(confs.local_dir)) {
         throw std::runtime_error("Config file/directory missing");
     }
@@ -201,6 +205,28 @@ void Application::clone_remote() const {
     load_dir(confs.local_dir);
 }
 
+
+void Application::print_status() const {
+    std::cout << "Local setup initialized: ";
+    
+    if (!fs::is_directory(confs.local_dir)) {
+        std::cout << "No\n";
+        return;
+    }
+
+    std::cout << "Yes\n";
+
+    const fs::path former = shell.get_cwd();
+    shell.set_cwd(confs.local_dir);
+
+    std::cout << "\nGit status:\n";
+    shell.git_status();
+
+    std::cout << "\nCurrent files: \n";
+    shell.list_files();
+}
+
+
 void Application::print_help() const {
     const char *msg = "\n"
         "Usage: %s [command] [flags]\n"
@@ -212,6 +238,7 @@ void Application::print_help() const {
         "\tpush\t\tPush recent updates to remote repository\n"
         "\texport\t\tExport neovim and tmux configs to zip file\n"
         "\timport\t\tImport neovim and tmux configs from zip file\n"
+        "\tstatus\t\tShow the status of local setup\n"
         "\thelp\t\tShow this help text\n"
         "\n\nFlags:\n"
         "\t--dry-run\n"
