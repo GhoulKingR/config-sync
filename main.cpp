@@ -23,6 +23,7 @@ int main(int argc, const char **argv) {
             case IMPORT_ZIP:
                 app.import_zip();
                 break;
+            case HELP:
             default:
                 app.print_help();
                 break;

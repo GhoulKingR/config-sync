@@ -15,6 +15,7 @@ enum Command {
     PUSH_REMOTE,
     EXPORT_ZIP,
     IMPORT_ZIP,
+    HELP,
     NONE,
 };
 

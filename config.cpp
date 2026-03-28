@@ -21,6 +21,7 @@ Configs::Configs(int argc, const char **argv) :
         else if (arg == "push") command = PUSH_REMOTE;
         else if (arg == "export") command = EXPORT_ZIP;
         else if (arg == "import") command = IMPORT_ZIP;
+        else if (arg == "help") command = HELP;
         else command = NONE;
     }
 
