@@ -7,13 +7,13 @@
 #include <string>
 #include <string_view>
 #include <toml++/toml.hpp>
-#include <utility>
 
 Configs::Configs(int argc, const char **argv, const Shell &shell) :
     dry_run(false),
     level(0),
     url(std::nullopt),
     file(std::nullopt),
+    name(std::nullopt),
     program_name("config-sync"),
     home_dir(std::getenv("HOME")),
     local_dir(fs::path(home_dir) / ("." + program_name)),
@@ -54,6 +54,11 @@ Configs::Configs(int argc, const char **argv, const Shell &shell) :
             file = arg.substr(7);
         } else if (arg == "-f") {
             file = argv[i + 1];
+            i++;
+        } else if (arg.substr(0, 7) == "--name=") {
+            name = arg.substr(7);
+        } else if (arg == "-n") {
+            name = argv[i + 1];
             i++;
         } else {
             throw std::runtime_error(std::format("Invalid argument: {}", arg));

@@ -64,10 +64,10 @@ public:
     void git_init() const;
     void git_add() const;
     void git_commit() const;
-    void git_add_remote(std::string_view) const;
+    void git_add_remote(std::string_view, std::string_view) const;
     void git_clone(std::string_view, std::string_view) const;
-    void git_push() const;
-    void git_pull() const;
+    void git_push(std::string_view) const;
+    void git_pull(std::string_view) const;
     void git_status() const;
     void list_files() const;
 };
@@ -79,6 +79,7 @@ struct Configs {
     uint8_t level;
     std::optional<std::string> url;
     std::optional<std::string> file;
+    std::optional<std::string> name;
     toml::table targets;
 
     const std::string program_name;

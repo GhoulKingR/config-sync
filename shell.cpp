@@ -88,24 +88,24 @@ void Shell::git_commit() const {
     );
 }
 
-void Shell::git_add_remote(std::string_view url) const {
+void Shell::git_add_remote(std::string_view remote_name, std::string_view url) const {
     run_command(
-        std::format("git remote add origin {}", url),
-        "Adding remote URL"
+        std::format("git remote add {} {}", remote_name, url),
+        std::format("Adding remote URL as {}", remote_name)
     );
 }
 
-void Shell::git_push() const {
+void Shell::git_push(std::string_view remote_name) const {
     run_command(
-        "git push origin main",
-        "Pushing updates to remote repository"
+        std::format("git push {} main", remote_name),
+        std::format("Pushing updates to {} repository", remote_name)
     );
 }
 
-void Shell::git_pull() const {
+void Shell::git_pull(std::string_view remote_name) const {
     run_command(
-        "git pull origin main --rebase",
-        "Pushing updates to remote repository"
+        std::format("git pull {} main --rebase", remote_name),
+        std::format("Pushing updates from {}", remote_name)
     );
     git_add();
     git_commit();
