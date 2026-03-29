@@ -1,2 +1,3 @@
 # config-sync
-Helper for syncing neovim and tmux configs between systems
+
+A helper for syncing and managing configurations
