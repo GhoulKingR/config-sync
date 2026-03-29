@@ -15,6 +15,10 @@ void Application::init_remote() const {
         throw std::runtime_error("You must provide a url");
     }
 
+    if (!confs.name.has_value()) {
+        throw std::runtime_error("You must provide a name to label remote URL");
+    }
+
     // init local folder
     logger.info("Checking for local directory");
     if (!fs::is_directory(confs.local_dir)) {
@@ -29,7 +33,7 @@ void Application::init_remote() const {
     shell.git_init();
     shell.git_add();
     shell.git_commit();
-    shell.git_add_remote(*confs.url);
+    shell.git_add_remote(confs.name.value(), confs.url.value());
     shell.set_cwd(former);
     logger.info("Done initializing local directory for git remote");
 }
@@ -113,6 +117,10 @@ void Application::pull_remote() const {
     if (!fs::is_directory(confs.local_dir)) {
         throw std::runtime_error("Config directory missing");
     }
+
+    if (!confs.name.has_value()) {
+        throw std::runtime_error("You must provide a name for the remote URL to pull from");
+    }
     
     // check if it's a git repository
     if (!fs::is_directory(confs.local_dir / ".git")) {
@@ -121,7 +129,7 @@ void Application::pull_remote() const {
 
     const fs::path former = shell.get_cwd();
     shell.set_cwd(confs.local_dir);
-    shell.git_pull();
+    shell.git_pull(confs.name.value());
     shell.set_cwd(former);
 
     confs.load_config_file();
@@ -167,6 +175,10 @@ void Application::push_remote() const {
     if (!fs::is_directory(confs.local_dir)) {
         throw std::runtime_error("Config directory missing");
     }
+
+    if (!confs.name.has_value()) {
+        throw std::runtime_error("You must provide a name for the remote URL label");
+    }
     
     // check if it's a git repository
     if (!fs::is_directory(confs.local_dir / ".git")) {
@@ -175,7 +187,7 @@ void Application::push_remote() const {
 
     const fs::path former = shell.get_cwd();
     shell.set_cwd(confs.local_dir);
-    shell.git_push();
+    shell.git_push(confs.name.value());
     shell.set_cwd(former);
 }
 
@@ -219,8 +231,8 @@ void Application::print_status() const {
     const fs::path former = shell.get_cwd();
     shell.set_cwd(confs.local_dir);
 
-    std::cout << "\nGit status:\n";
-    shell.git_status();
+    std::cout << "\nRemote list:\n";
+    shell.git_remote();
 
     std::cout << "\nCurrent files: \n";
     shell.list_files();
