@@ -25,17 +25,17 @@ enum Command {
 /// logger.cpp
 class Logger {
     uint8_t level;
-    const char *module_name;
-    void log_message(const std::string &type, const std::string &text) const;
+    const std::string module_name;
+    void log_message(std::string_view type, std::string_view text) const;
 
 public:
-    Logger(const char *module_name);
-    Logger(const char *module_name, uint8_t log_level);
-    void setLevel(uint8_t level);
-    void info(const std::string &) const;
-    void info(const std::string &, bool) const;
-    void error(const std::string &) const;
-    void log(const std::string &) const;
+    Logger(std::string_view);
+    Logger(std::string_view, uint8_t);
+    void setLevel(uint8_t);
+    void info(std::string_view) const;
+    void info(std::string_view, bool) const;
+    void error(std::string_view) const;
+    void log(std::string_view) const;
 };
 
 
