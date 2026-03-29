@@ -257,6 +257,7 @@ void Application::print_help() const {
         "\t-v[v[v]]\n"
         "\t-f FILE, --file=FILE\n"
         "\t-u URL, --url=URL\n"
+        "\t-n NAME, --name=NAME\n"
         "\n";
     printf(msg, confs.program_name.c_str());
 }
