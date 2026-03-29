@@ -234,6 +234,9 @@ void Application::print_status() const {
     std::cout << "\nGit status:\n";
     shell.git_status();
 
+    std::cout << "\nRemote list:\n";
+    shell.git_remote();
+
     std::cout << "\nCurrent files: \n";
     shell.list_files();
 }

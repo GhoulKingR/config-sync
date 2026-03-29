@@ -125,6 +125,13 @@ void Shell::git_status() const {
     );
 }
 
+void Shell::git_remote() const  {
+    run_command(
+        "git remote",
+        "Viewing remote list"
+    );
+}
+
 void Shell::list_files() const {
     run_command(
         "ls -l",

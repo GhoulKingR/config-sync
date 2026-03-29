@@ -58,6 +58,7 @@ public:
     void zip(std::string_view) const;
     void unzip(std::string_view) const;
     void set_cwd(const fs::path &) const;
+    void list_files() const;
     const fs::path get_cwd() const;
 
     // git commands
@@ -69,7 +70,7 @@ public:
     void git_push(std::string_view) const;
     void git_pull(std::string_view) const;
     void git_status() const;
-    void list_files() const;
+    void git_remote() const;
 };
 
 /// config.cpp
