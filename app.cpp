@@ -231,9 +231,6 @@ void Application::print_status() const {
     const fs::path former = shell.get_cwd();
     shell.set_cwd(confs.local_dir);
 
-    std::cout << "\nGit status:\n";
-    shell.git_status();
-
     std::cout << "\nRemote list:\n";
     shell.git_remote();
 

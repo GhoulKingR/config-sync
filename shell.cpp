@@ -118,13 +118,6 @@ void Shell::git_clone(std::string_view url, std::string_view dest) const {
     );
 }
 
-void Shell::git_status() const {
-    run_command(
-        "git status",
-        "Checking git status"
-    );
-}
-
 void Shell::git_remote() const  {
     run_command(
         "git remote",

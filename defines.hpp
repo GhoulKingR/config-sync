@@ -69,7 +69,6 @@ public:
     void git_clone(std::string_view, std::string_view) const;
     void git_push(std::string_view) const;
     void git_pull(std::string_view) const;
-    void git_status() const;
     void git_remote() const;
 };
 
